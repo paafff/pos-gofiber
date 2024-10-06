@@ -4,44 +4,39 @@ Berikut adalah struktur folder dari project ini:
 
 ![image](https://github.com/user-attachments/assets/901d9747-48ae-4d9a-bb10-486cfc1354c8)
 
+## Installation
 
-app/
-├── cmd/
-│   └── web/
-│       └── main.go
-├── internal/
-│   ├── config/
-│   │   └── config.go
-│   ├── domain/
-│   │   ├── models/
-│   │   │   └── user.go
-│   │   └── services/
-│   │       └── user_service.go
-│   ├── handlers/
-│   │   └── user_handler.go
-│   ├── infrastructure/
-│   │   ├── database/
-│   │   │   └── database.go
-│   │   ├── router/
-│   │   │   └── router.go
-│   │   └── logger/
-│   │       └── logger.go
-│   ├── repositories/
-│   │   └── user_repository.go
-│   ├── routes/
-│   │   └── user_routes.go
-│   └── auth/
-│       ├── auth_handler.go
-│       ├── auth_service.go
-│       └── auth_middleware.go
-├── pkg/
-│   └── utils/
-│       └── utils.go
-├── config.json
-├── Makefile
-├── go.mod
-├── go.sum
-└── README.md
+```bash
+$ go mod tidy
+```
+
+## Running the app
+
+```bash
+
+# Jalankan aplikasi
+run:
+	go run cmd/web/main.go
+
+# Seed data dummy
+seed:
+	go run cmd/web/main.go seed
+
+# Reset database
+reset-db:
+	go run cmd/web/main.go reset-db
+
+```
+
+Using Docker
+
+```bash
+# Build and start the containers
+$ docker-compose up --build
+
+# Stop the containers
+$ docker-compose down
+```
 
 - **cmd/**: Berisi entry point dari aplikasi.
   - **web/**: Berisi file [`main.go`](command:_github.copilot.openSymbolFromReferences?%5B%22main.go%22%2C%5B%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22c%3A%5C%5CUsers%5C%5Cdanangr%5C%5CDesktop%5C%5Cdevp%5C%5Cgithub%5C%5Cgo-fiber%5C%5CREADME.md%22%2C%22_sep%22%3A1%2C%22external%22%3A%22file%3A%2F%2F%2Fc%253A%2FUsers%2Fdanangr%2FDesktop%2Fdevp%2Fgithub%2Fgo-fiber%2FREADME.md%22%2C%22path%22%3A%22%2Fc%3A%2FUsers%2Fdanangr%2FDesktop%2Fdevp%2Fgithub%2Fgo-fiber%2FREADME.md%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A3%2C%22character%22%3A12%7D%7D%5D%5D 'Go to definition') yang merupakan entry point dari aplikasi web.
