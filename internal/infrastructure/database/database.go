@@ -1,6 +1,58 @@
+// package database
+
+// import (
+// 	"fmt"
+// 	"log"
+// 	"time"
+
+// 	"pos-gofiber/internal/config"
+// 	"pos-gofiber/internal/domain/models"
+
+// 	"gorm.io/driver/postgres"
+// 	"gorm.io/gorm"
+// )
+
+// var DB *gorm.DB
+
+// func InitDatabase() {
+// 	// Load database configuration from config.AppConfig
+// 	dbConfig := config.AppConfig.Database
+
+// 	fmt.Println(dbConfig)
+
+// 	// Create DSN
+// 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+// 		dbConfig.Host, dbConfig.Username, dbConfig.Password, dbConfig.Name, dbConfig.Port, dbConfig.SSLMode, dbConfig.TimeZone)
+
+// 	var err error
+
+// 	// Logika retry untuk koneksi database
+// 	for i := 0; i < 10; i++ {
+// 		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+// 		if err == nil {
+// 			break
+// 		}
+// 		log.Printf("failed to connect to database (attempt %d): %v", i+1, err)
+// 		time.Sleep(2 * time.Second)
+// 	}
+
+// 	if err != nil {
+// 		log.Fatal("could not connect to the database: ", err)
+// 	}
+
+// 	// AutoMigrate will create the table based on the User struct
+// 	err = DB.AutoMigrate(&models.User{}, &models.Product{}, &models.OrderedProduct{}, &models.Transaction{})
+// 	if err != nil {
+// 		log.Fatal("failed to migrate database: ", err)
+// 	}
+
+// 	log.Println("Database migrated successfully")
+// }
+
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -8,6 +60,7 @@ import (
 	"pos-gofiber/internal/config"
 	"pos-gofiber/internal/domain/models"
 
+	_ "github.com/lib/pq" // Import driver PostgreSQL untuk database/sql
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,13 +71,15 @@ func InitDatabase() {
 	// Load database configuration from config.AppConfig
 	dbConfig := config.AppConfig.Database
 
-	fmt.Println(dbConfig)
+	// Create the database if it doesn't exist
+	err := CreateDatabaseIfNotExists(dbConfig)
+	if err != nil {
+		log.Fatal("could not create database: ", err)
+	}
 
 	// Create DSN
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
 		dbConfig.Host, dbConfig.Username, dbConfig.Password, dbConfig.Name, dbConfig.Port, dbConfig.SSLMode, dbConfig.TimeZone)
-
-	var err error
 
 	// Logika retry untuk koneksi database
 	for i := 0; i < 10; i++ {
@@ -47,4 +102,38 @@ func InitDatabase() {
 	}
 
 	log.Println("Database migrated successfully")
+}
+
+func CreateDatabaseIfNotExists(dbConfig config.DatabaseConfig) error {
+	// Create DSN without specifying the database name
+	dsn := fmt.Sprintf("host=%s user=%s password=%s port=%d sslmode=%s TimeZone=%s",
+		dbConfig.Host, dbConfig.Username, dbConfig.Password, dbConfig.Port, dbConfig.SSLMode, dbConfig.TimeZone)
+
+	// Connect to the PostgreSQL server
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Check if the database exists
+	var exists bool
+	query := fmt.Sprintf("SELECT EXISTS(SELECT datname FROM pg_catalog.pg_database WHERE datname = '%s')", dbConfig.Name)
+	err = db.QueryRow(query).Scan(&exists)
+	if err != nil {
+		return err
+	}
+
+	// Create the database if it doesn't exist
+	if !exists {
+		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbConfig.Name))
+		if err != nil {
+			return err
+		}
+		log.Printf("Database %s created successfully", dbConfig.Name)
+	} else {
+		log.Printf("Database %s already exists", dbConfig.Name)
+	}
+
+	return nil
 }
