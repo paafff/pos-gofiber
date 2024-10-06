@@ -1,0 +1,23 @@
+{
+  "app": {
+    "name": "pos-gofiber"
+  },
+  "web": {
+    "prefork": false,
+    "port": 3000
+  },
+
+  "log": {
+    "level": 6
+  },
+  "database": {
+    "username": "postgres",
+    "password": "sqlpaafff",
+    "host": "host.docker.internal",
+    "port": 5433,
+    "name": "db_pos_gofiber",
+    "sslmode": "disable",
+    "timezone": "Asia/Shanghai"
+  },
+  "jwt_secret": "rahasia-paafff"
+}
