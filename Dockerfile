@@ -39,11 +39,14 @@ COPY --from=builder /app/main .
 COPY .env .
 
 # Copy the config files
-COPY config.development.json .
 COPY config.production.json .
+
+# Copy the wait-for-it.sh script
+COPY wait-for-it.sh .
+RUN chmod +x wait-for-it.sh
 
 # Expose the port the app runs on
 EXPOSE 3000
 
 # Run the application
-CMD ["./main"]
+CMD ["./wait-for-it.sh", "postgres:5432","./main"]

@@ -21,7 +21,7 @@ func InitDatabase() {
 	dbConfig := config.AppConfig.Database
 
 	// Create the database if it doesn't exist
-	err := CreateDatabaseIfNotExists(dbConfig)
+	created, err := CreateDatabaseIfNotExists(dbConfig)
 	if err != nil {
 		log.Fatal("could not create database: ", err)
 	}
@@ -50,10 +50,16 @@ func InitDatabase() {
 		log.Fatal("failed to migrate database: ", err)
 	}
 
+	// Run seeders only if the database was created
+	if created {
+		SeedUsers(DB, 10)
+		SeedProducts(DB, 10)
+	}
+
 	log.Println("Database migrated successfully")
 }
 
-func CreateDatabaseIfNotExists(dbConfig config.DatabaseConfig) error {
+func CreateDatabaseIfNotExists(dbConfig config.DatabaseConfig) (bool, error) {
 	// Create DSN without specifying the database name
 	dsn := fmt.Sprintf("host=%s user=%s password=%s port=%d sslmode=%s TimeZone=%s",
 		dbConfig.Host, dbConfig.Username, dbConfig.Password, dbConfig.Port, dbConfig.SSLMode, dbConfig.TimeZone)
@@ -61,7 +67,7 @@ func CreateDatabaseIfNotExists(dbConfig config.DatabaseConfig) error {
 	// Connect to the PostgreSQL server
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer db.Close()
 
@@ -70,19 +76,20 @@ func CreateDatabaseIfNotExists(dbConfig config.DatabaseConfig) error {
 	query := fmt.Sprintf("SELECT EXISTS(SELECT datname FROM pg_catalog.pg_database WHERE datname = '%s')", dbConfig.Name)
 	err = db.QueryRow(query).Scan(&exists)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Create the database if it doesn't exist
 	if !exists {
 		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbConfig.Name))
 		if err != nil {
-			return err
+			return false, err
 		}
 		log.Printf("Database %s created successfully", dbConfig.Name)
+		return true, nil
 	} else {
 		log.Printf("Database %s already exists", dbConfig.Name)
 	}
 
-	return nil
+	return false, nil
 }

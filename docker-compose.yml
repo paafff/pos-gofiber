@@ -8,9 +8,9 @@ services:
     ports:
       - '3000:3000'
     depends_on:
-      - db
+      - postgres
 
-  db:
+  postgres:
     image: postgres:latest
     environment:
       POSTGRES_USER: postgres
